@@ -5,6 +5,7 @@
 # -- script: functions.py : python script with general functions                                         -- #
 # -- author: YOUR GITHUB USER NAME                                                                       -- #
 # -- license: GPL-3.0 License                                                                            -- #
-# -- repository: YOUR REPOSITORY URL                                                                     -- #
+# -- repository: https://github.com/jesusalvarezc/FInal_Project                                          -- #
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
+
