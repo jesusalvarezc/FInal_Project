@@ -1,6 +1,5 @@
 ## Description
-*Insert here a brief description of the project, including, purpose, technologies used and context 
-where it was created.*
+*Se analiza el comportamiento del EUR_USD durante el comunicado del indicador Trade Balance de la economía USA.*
 
 ## Install dependencies
 
