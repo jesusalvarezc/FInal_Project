@@ -14,11 +14,11 @@ Or you can manually install one by one using the name and version in the file.
 *El propósito de este proyecto es analizar el comportamiento del MXN_USD durante el comunicado del indicador Trade Balance de la economía USA, este proyecto se divide en 3 secciones, aspectos financieros como volumen, takeprofit, stoploss; aspectos estadísticos como prueba de componente de autocorrelación y autocorrelación parcial, prueba de heterocedasticidad, prueba de normalidad y prueba de estacionalidad; y aspectos computacionales como el cálculo de 4 métricas basadas en 4 escenarios diferentes.*
 
 ## Author
-*I.F.Jesús Álvarez Castellanos.
+- I.F.Jesús Álvarez Castellanos.
 
-I.F. Rodolfo Slay Ramos.
+- I.F. Rodolfo Slay Ramos.
 
-I.F. Esther Itzel Sanromán Santana.*
+- I.F. Esther Itzel Sanromán Santana.
 
 ## License
 **GNU General Public License v3.0** 
