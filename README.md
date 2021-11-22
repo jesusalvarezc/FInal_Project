@@ -1,5 +1,5 @@
 ## Description
-*Se analiza el comportamiento del EUR_USD durante el comunicado del indicador Trade Balance de la economía USA.*
+*Se analiza el comportamiento del MXN_USD durante el comunicado del indicador Trade Balance de la economía USA.*
 
 ## Install dependencies
 
@@ -11,10 +11,14 @@ Or you can manually install one by one using the name and version in the file.
 
 ## Funcionalities
 
-*Add here examples of core functionalities for the project in this repository.*
+*El propósito de este proyecto es analizar el comportamiento del MXN_USD durante el comunicado del indicador Trade Balance de la economía USA, este proyecto se divide en 3 secciones, aspectos financieros como volumen, takeprofit, stoploss; aspectos estadísticos como prueba de componente de autocorrelación y autocorrelación parcial, prueba de heterocedasticidad, prueba de normalidad y prueba de estacionalidad; y aspectos computacionales como el cálculo de 4 métricas basadas en 4 escenarios diferentes.*
 
 ## Author
-*Add Name and a brief description on who you are.*
+*I.F.Jesús Álvarez Castellanos.
+
+I.F. Rodolfo Slay Ramos.
+
+I.F. Esther Itzel Sanromán Santana.*
 
 ## License
 **GNU General Public License v3.0** 
