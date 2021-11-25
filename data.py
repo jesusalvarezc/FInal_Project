@@ -19,3 +19,11 @@ def f_leer_archivos(file):
     data = data.iloc[:24, :]
     data = data.sort_values(by='DateTime', ascending=True)
     return data
+
+
+def f_leer_archivos_varios(*files):
+    result = pd.DataFrame()
+    for file in files:
+        data = pd.read_excel("0files/"+file)
+        result = pd.concat([result, data])
+    return result
