@@ -11,6 +11,8 @@
 
 import pandas as pd
 
+def peso_usd(amount):
+    return 1/amount
 
 def f_leer_archivos(file):
     data = pd.read_csv("0files/"+file)
@@ -25,5 +27,11 @@ def f_leer_archivos_varios(*files):
     result = pd.DataFrame()
     for file in files:
         data = pd.read_excel("0files/"+file)
+        data.close = data.close.apply(peso_usd)
+        data.open = data.open.apply(peso_usd)
+        high1 = data.low.apply(peso_usd)
+        low1 = data.high.apply(peso_usd)
+        data.high = high1
+        data.low = low1
         result = pd.concat([result, data])
     return result
