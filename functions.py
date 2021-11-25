@@ -8,4 +8,8 @@
 # -- repository: https://github.com/jesusalvarezc/FInal_Project                                          -- #
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
+import data as dt
 
+def clasificacion(file):
+    file = dt.f_leer_archivos("m")
+    return result

@@ -13,7 +13,7 @@ import pandas as pd
 
 
 def f_leer_archivos(file):
-    data = pd.read_csv(file)
+    data = pd.read_csv("0files/"+file)
     data['DateTime'] = pd.to_datetime(data['DateTime'])
     # tomar solo los primeros 24 datos porque se analizan 2 años
     data = data.iloc[:24, :]
