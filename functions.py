@@ -22,16 +22,16 @@ from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 
 
-def linea(data):
+def serie_tiempo(data):
     fig = px.line(data, x='DateTime', y='Actual')
     return fig.show()
 
 
 # A y AP
 def autocorr(data):
-    A = plot_acf(data.Actual)
-    AP = plot_pacf(data.Actual)
-    return A, AP
+    autocorrelacion = plot_acf(data.Actual)
+    autocorrelacion_parcial = plot_pacf(data.Actual)
+    return autocorrelacion, autocorrelacion_parcial
 
 
 # prueba heterocedasticidad
@@ -44,23 +44,23 @@ def hetero(data):
 def normalidad(data):
     print('Kursotis:', stats.kurtosis(data.Actual))
     print('Skewness:', stats.skew(data.Actual))
-    print('Shapiro-Wilk: ', stats.shapiro(data.Actual)) # no más de 50 datos
+    print('Shapiro-Wilk: ', stats.shapiro(data.Actual))
     print('D Agostino:', stats.normaltest(data.Actual))
 
 
-def estacion(data):
-    # Estacionalidad
-    rcParams['figure.figsize'] = 16, 6
-    decomposition = sm.tsa.seasonal_decompose(data.Actual, model='additive', period=12)
-    decomposition.plot()
-    ## Test de DICKEY-FULLER para Estacionariedad
-    df_test = adfuller(data.Actual)
-    if df_test[1] > 0.05:
-        test= print('No hay evidencia de estacionariedad')
-    else:
-        test= print('Hay evidencia de estacionariedad')
 
-    return print((test,df_test[1])) ,plt.show()
+def estacionalidad(data):
+    rcParams['figure.figsize'] = 16, 6
+    descomp = sm.tsa.seasonal_decompose(data.Actual, model='additive', period=12)
+    descomp.plot()
+    # DICKEY-FULLER
+    data_test = adfuller(data.Actual)
+    if data_test[1] > 0.05:
+        ans = 'No hay estacionariedad'
+    else:
+        ans = 'Hay estacionariedad'
+
+    return print((ans, data_test[1])), plt.show()
 
 
 # Datos Atípicos
