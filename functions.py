@@ -11,6 +11,62 @@
 
 # Statistical
 
+import statsmodels.api as sm
+from scipy import stats
+from pylab import rcParams
+from statsmodels.tsa.stattools import adfuller
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.express as px
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.graphics.tsaplots import plot_pacf
+
+
+def serie_tiempo(data):
+    fig = px.line(data, x='DateTime', y='Actual')
+    return fig.show()
+
+
+# A y AP
+def autocorr(data):
+    autocorrelacion = plot_acf(data.Actual)
+    autocorrelacion_parcial = plot_pacf(data.Actual)
+    return autocorrelacion, autocorrelacion_parcial
+
+
+# prueba heterocedasticidad
+def hetero(data):
+    fig, ax = plt.subplots(1,1, figsize=[12,6])
+    a = sm.qqplot(data.Actual, line= 'q', fit  = True, ax = ax)
+
+
+# Normalidad
+def normalidad(data):
+    print('Kursotis:', stats.kurtosis(data.Actual))
+    print('Skewness:', stats.skew(data.Actual))
+    print('Shapiro-Wilk: ', stats.shapiro(data.Actual))
+    print('D Agostino:', stats.normaltest(data.Actual))
+
+
+
+def estacionalidad(data):
+    rcParams['figure.figsize'] = 16, 6
+    descomp = sm.tsa.seasonal_decompose(data.Actual, model='additive', period=12)
+    descomp.plot()
+    # DICKEY-FULLER
+    data_test = adfuller(data.Actual)
+    if data_test[1] > 0.05:
+        ans = 'No hay estacionariedad'
+    else:
+        ans = 'Hay estacionariedad'
+
+    return print((ans, data_test[1])), plt.show()
+
+
+# Datos Atípicos
+def atipicos(data):
+    ax = sns.boxplot(x='Actual', data=data)
+
 
 
 # Computational
