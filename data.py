@@ -13,13 +13,15 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 
+
 def peso_usd(amount):
     return 1/amount
+
 
 def f_leer_archivos(file):
     data = pd.read_csv("0files/"+file)
     data['DateTime'] = pd.to_datetime(data['DateTime'])
-    # tomar solo los primeros 24 datos porque se analizan 2 años
+    # 24 porque son 2 años
     data = data.iloc[:24, :]
     data = data.sort_values(by='DateTime', ascending=True)
     return data
@@ -44,11 +46,11 @@ def f_leer_archivos_varios(*files):
 def look_at_change(data_ind: pd.DataFrame, data_change: pd.DataFrame):
     res = {}
     for i in range(len(data_ind)):
-        dic_ind = data_ind.iloc[i,0]
+        dic_ind = data_ind.iloc[i, 0]
         delta = dt.timedelta(minutes=30)
         start = dic_ind - delta
         end = dic_ind + delta
         res_to_append = data_change[(data_change["timestamp"] <= end) & (data_change["timestamp"] >= start)]
         res[dic_ind] = res_to_append
-        
+
     return res

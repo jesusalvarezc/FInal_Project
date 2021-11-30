@@ -9,3 +9,33 @@
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
 
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import plotly.express as px
+
+
+def graf_ind(indicator):
+    fechas = indicator["DateTime"]
+    fig, ax = plt.subplots()
+    ax.plot(fechas, indicator['Actual'], color='tab:purple', label='Actual')
+    ax.plot(fechas, indicator['Consensus'], color='tab:green', label='Consensus')
+    ax.plot(fechas, indicator['Previous'], color='tab:blue', label='Previous')
+    plt.xticks(rotation=45)
+    plt.ylabel("Valores del indicador")
+    plt.xlabel("Fechas")
+    plt.title("Trade balance USA indicator")
+    ax.legend(loc='upper right')
+    return plt.show()
+
+
+def graf_val_ind(indicator):
+    x = indicator["DateTime"]
+    y = indicator["Actual", "Consensus", "Previous"]
+    plt.plot(x, y)
+    plt.xticks(rotation=45)
+    plt.ylabel("Valores de Trade balance")
+    plt.title("Timestamp")
+
+    return plt.show()
