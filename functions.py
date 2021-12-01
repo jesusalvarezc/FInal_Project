@@ -9,11 +9,11 @@
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
 
-# Statistical
 
 import statsmodels.api as sm
 from scipy import stats
 from pylab import rcParams
+import pandas as pd
 from statsmodels.tsa.stattools import adfuller
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -21,6 +21,25 @@ import plotly.express as px
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 
+
+def validacion_operacion(timestamp, tipo, volumen, precio_ini, precio_fin, takeprofit, stoploss):
+    if tipo == 'Venta':
+        tp = precio_ini - takeprofit
+        sl = precio_ini + stoploss
+    else:
+        tp = precio_ini + takeprofit
+        sl = precio_ini - stoploss
+
+    tabla = pd.DataFrame(
+        {'Concepto': ['DateTime', 'Posicion', 'Volumen', 'Precio inicial', 'Precio final',
+                      'Takeprofit', 'Stoploss'],
+         'Valor': [timestamp, tipo, volumen, precio_ini, precio_fin, tp, sl]
+         }
+    )
+    return tabla
+
+
+# Statistical
 
 def serie_tiempo(data):
     fig = px.line(data, x='DateTime', y='Actual')
@@ -36,8 +55,8 @@ def autocorr(data):
 
 # prueba heterocedasticidad
 def hetero(data):
-    fig, ax = plt.subplots(1,1, figsize=[12,6])
-    a = sm.qqplot(data.Actual, line= 'q', fit  = True, ax = ax)
+    fig, ax = plt.subplots(1, 1, figsize=[12, 6])
+    a = sm.qqplot(data.Actual, line='q', fit=True, ax=ax)
 
 
 # Normalidad
@@ -46,7 +65,6 @@ def normalidad(data):
     print('Skewness:', stats.skew(data.Actual))
     print('Shapiro-Wilk: ', stats.shapiro(data.Actual))
     print('D Agostino:', stats.normaltest(data.Actual))
-
 
 
 def estacionalidad(data):
@@ -66,7 +84,6 @@ def estacionalidad(data):
 # Datos Atípicos
 def atipicos(data):
     ax = sns.boxplot(x='Actual', data=data)
-
 
 
 # Computational
