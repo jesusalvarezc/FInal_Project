@@ -55,8 +55,8 @@ def autocorr(data):
 
 # prueba heterocedasticidad
 def hetero(data):
-    fig, ax = plt.subplots(1, 1, figsize=[12, 6])
-    a = sm.qqplot(data.Actual, line='q', fit=True, ax=ax)
+    fig, ax = plt.subplots(1, 1)
+    ans = sm.qqplot(data.Actual, line='q', fit=True, ax=ax)
 
 
 # Normalidad
