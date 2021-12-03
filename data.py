@@ -51,6 +51,11 @@ def look_at_change(data_ind: pd.DataFrame, data_change: pd.DataFrame):
         start = dic_ind - delta
         end = dic_ind + delta
         res_to_append = data_change[(data_change["timestamp"] <= end) & (data_change["timestamp"] >= start)]
+        low_limit = len(res_to_append[res_to_append["timestamp"] < dic_ind])
+        high_limit = len(res_to_append) - low_limit
+        new_ind = list(range(-1 * low_limit, high_limit))
+        res_to_append.index = new_ind
         res[dic_ind] = res_to_append
 
     return res
+
