@@ -14,6 +14,7 @@ import statsmodels.api as sm
 from scipy import stats
 from pylab import rcParams
 import pandas as pd
+import numpy as np
 from statsmodels.tsa.stattools import adfuller
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -104,3 +105,24 @@ def clasificacion(data):
             res.append("D")
     data["Escenario"] = res
     return data
+
+def metrics(data: dict, indx: pd.DataFrame):
+    res_metric = indx[["DateTime", "Escenario"]]
+    directions = []
+    pips_alctas = []
+    pips_bajtas = []
+    for i in list(data.keys()):
+        o0 = data[i].loc[0]["open"]
+        direction = data[i].iloc[-1, :]["close"] - data[i].loc[0]["open"]
+        directions.append(direction)
+        alctas = [high - o0 for high in data[i].loc[data[i].index >= 0, "high"] if high - o0 > 0]
+        alctas_sum = int(np.sum(alctas) * 1000)
+        pips_alctas.append(alctas_sum)
+        bajistas = [o0 - low for low in data[i].loc[data[i].index >= 0, "low"] if o0 - low > 0]
+        bajistas_sum = int(np.sum(bajistas) * 1000)
+        pips_bajtas.append(bajistas_sum)
+    directions_append = [1 if i > 0 else -1 for i in directions]
+    res_metric["direccion"] = directions_append
+    res_metric["pip_alcistas"] = pips_alctas
+    res_metric["pip_bajistas"] = pips_bajtas
+    return res_metric
