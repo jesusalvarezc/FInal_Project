@@ -18,6 +18,7 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 import seaborn as sns
 import matplotlib.pyplot as plt
+import datetime as dt
 import plotly.express as px
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
@@ -56,8 +57,8 @@ def autocorr(data):
 
 # prueba heterocedasticidad
 def hetero(data):
-    fig, ax = plt.subplots(1, 1, figsize=[12, 6])
-    a = sm.qqplot(data.Actual, line='q', fit=True, ax=ax)
+    fig, ax = plt.subplots(1, 1)
+    ans = sm.qqplot(data.Actual, line='q', fit=True, ax=ax)
 
 
 # Normalidad
@@ -106,23 +107,42 @@ def clasificacion(data):
     data["Escenario"] = res
     return data
 
+
 def metrics(data: dict, indx: pd.DataFrame):
     res_metric = indx[["DateTime", "Escenario"]]
     directions = []
     pips_alctas = []
     pips_bajtas = []
+    volatilidad = []
     for i in list(data.keys()):
-        o0 = data[i].loc[0]["open"]
-        direction = data[i].iloc[-1, :]["close"] - data[i].loc[0]["open"]
+        df = data[i]
+        o0 = df.loc[0]["open"]
+        direction = df.iloc[-1, :]["close"] - df.loc[0]["open"]
         directions.append(direction)
-        alctas = [high - o0 for high in data[i].loc[data[i].index >= 0, "high"] if high - o0 > 0]
+        alctas = [high - o0 for high in df.loc[df.index >= 0, "high"] if high - o0 > 0]
         alctas_sum = int(np.sum(alctas) * 1000)
         pips_alctas.append(alctas_sum)
-        bajistas = [o0 - low for low in data[i].loc[data[i].index >= 0, "low"] if o0 - low > 0]
+        bajistas = [o0 - low for low in df.loc[df.index >= 0, "low"] if o0 - low > 0]
         bajistas_sum = int(np.sum(bajistas) * 1000)
         pips_bajtas.append(bajistas_sum)
+        vol = [df.high.iloc[v] - df.low.iloc[v] for v in range(len(df))]
+        vola = int(np.sum(vol) * 1000)
+        volatilidad.append(vola)
     directions_append = [1 if i > 0 else -1 for i in directions]
     res_metric["direccion"] = directions_append
     res_metric["pip_alcistas"] = pips_alctas
     res_metric["pip_bajistas"] = pips_bajtas
+    res_metric["volatilidad"] = volatilidad
     return res_metric
+
+
+def opt_backtest(metrics: pd.DataFrame):
+    train_date = dt.datetime(2019, 1, 1)
+    test_date = dt.datetime(2019, 2, 1)
+    train_metrics = metrics[metrics.Escenario <= train_date]
+    train = train_metrics["Escenario"]
+    train["operacion"] = ["compra" if i == 1 else "venta" for i in train_metrics["direccion"]]
+    train["tp"] = [i for i in train_metrics[""]]
+
+    return train
+
