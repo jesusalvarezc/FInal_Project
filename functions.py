@@ -138,14 +138,45 @@ def metrics(data: dict, indx: pd.DataFrame):
 
 def desciciones(metrics: pd.DataFrame):
     train_date = dt.datetime(2019, 2, 1)
-    test_date = dt.datetime(2019, 1, 31)
-    #pd.to_datetime(metrics["Escenario"], format="%Y/%m/%d %H:%M:%S")
     train_metrics = metrics[metrics["DateTime"] < train_date]
-    train = pd.DataFrame(train_metrics["Escenario"])
-    #train["operacion"] = ["compra" if i == 1 else "venta" for i in train_metrics["direccion"]]
-    #train["tp"] = [int(train_metrics.iloc[i, -2]/2)*10 if train.iloc[i, 1] == "compra" else int(train_metrics.iloc[i, -3]/20)*10 for i in range(len(train))]
-    #train["sl"] = [i/2 for i in train["tp"]]
-    #train["volumen"] = [10000/(i/10) for i in metrics["volatilidad"]]
+    train_metrics = train_metrics.reset_index(range(len(train_metrics)))
+    operation = []
+    tp = []
+    sl = []
+    volumen = []
+    escenarios = ["A","B","C","D"]
+    for i in escenarios:
+        data = train_metrics[train_metrics.Escenario == i]
+        dir_sum = data["direccion"].sum()
+        operation.append("compra" if dir_sum > 0 else "venta")
+        als = int(data["pip_alcistas"].mean()/10)*10
+        baj = int(data["pip_bajistas"].mean()/10)*10
+        tp.append(als if operation[i] == "compra" else baj)
+        vol = data["volatilidad"].mean()
+        volumen.append(10000/(vol/100))
+    train = pd.DataFrame(data= {"operacion": operation,
+                                "sl": sl,
+                                "tp": tp,
+                                "volumen": volumen})
 
     return train
 
+
+def back_test(metrics: pd.DataFrame, desciciones: pd.DataFrame, capital: int):
+    test_date = dt.datetime(2019, 1, 31)
+    test_metrics = metrics[metrics["DateTime"] > test_date]
+    test_metrics = test_metrics.reset_index(range(len(test_metrics)))
+    test = test_metrics.merge(desciciones, left_on="Escenarios", right_on="Escenarios")
+    test["resultado"] = list(range(len(test)))
+    test["pips"] = list(range(len(test)))
+    test["capital"] = list(range(len(test)))
+    for i in range(len(test)):
+        if test.loc[str(i),"operacion"] == "compra":
+            test.loc[str(i),"pips"] = test.loc[str(i),"pip_alcistas"] if test.loc[str(i),"pip_alcistas"] >= test.loc[str(i),"tp"] else -1 * test.loc[str(i),"pip_bajistas"]
+            test.loc[str(i),"resultado"] = "ganada" if test.loc[str(i),"pip_alcistas"] == test.loc[str(i),"tp"] else "perdida"
+            test.loc[str(i), "capital"] = (test.loc[str(i), "volumen"] * test.loc[str(i), "pips"])/1000
+            capital = capital + test.loc[str(i), "capital"] if test.loc[str(i),"resultado"] == "ganada" else capital - test.loc[str(i), "capital"]
+
+
+
+    return test
