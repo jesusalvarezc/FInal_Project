@@ -20,6 +20,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import datetime as dt
 import plotly.express as px
+import pyswarms as ps
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
 
@@ -144,7 +145,7 @@ def deciciones(metrics: pd.DataFrame):
     tp = []
     sl = []
     volumen = []
-    escenarios = ["A","B","C","D"]
+    escenarios = ["A", "B", "C", "D"]
     for i in escenarios:
         data = train_metrics[train_metrics.Escenario == i]
         dir_sum = data["direccion"].sum()
@@ -154,11 +155,11 @@ def deciciones(metrics: pd.DataFrame):
         tp.append(als if operation[-1] == "compra" else baj)
         vol = data["volatilidad"].mean()
         volumen.append(10000/(vol/100))
-    train = pd.DataFrame(data= {"Escenario": escenarios,
-                                "operacion": operation,
-                                "sl": [i/2 for i in tp],
-                                "tp": tp,
-                                "volumen": volumen})
+    train = pd.DataFrame(data={"Escenario": escenarios,
+                               "operacion": operation,
+                               "sl": [i/2 for i in tp],
+                               "tp": tp,
+                               "volumen": volumen})
 
     return train
 
@@ -173,9 +174,9 @@ def back_test(metrics: pd.DataFrame, deciciones: pd.DataFrame, capital: int):
     test["capital"] = list(range(len(test)))
     test["capital_acm"] = list(range(len(test)))
     for i in range(len(test)):
-        if test.loc[i,"operacion"] == "compra":
-            test.loc[i,"pips"] = test.loc[i,"pip_alcistas"] if test.loc[i,"pip_alcistas"] >= test.loc[i,"tp"] else -1 * test.loc[i,"pip_bajistas"]
-            test.loc[i,"resultado"] = "ganada" if test.loc[i,"pip_alcistas"] == test.loc[i,"tp"] else "perdida"
+        if test.loc[i, "operacion"] == "compra":
+            test.loc[i, "pips"] = test.loc[i, "pip_alcistas"] if test.loc[i, "pip_alcistas"] >= test.loc[i,"tp"] else -1 * test.loc[i, "pip_bajistas"]
+            test.loc[i, "resultado"] = "ganada" if test.loc[i, "pip_alcistas"] == test.loc[i, "tp"] else "perdida"
             test.loc[i, "capital"] = (test.loc[i, "volumen"] * test.loc[i, "pips"])/1000
             capital += test.loc[i, "capital"]
             test.loc[i, "capital_acm"] = capital
@@ -187,3 +188,65 @@ def back_test(metrics: pd.DataFrame, deciciones: pd.DataFrame, capital: int):
             test.loc[i, "capital_acm"] = capital
 
     return test
+
+
+def f_decisiones(operacion, sl, tp, volumen):
+    df_decisiones = pd.DataFrame(columns=['Escenario', 'operacion', 'sl', 'tp', 'volumen'])
+    df_decisiones['Escenario'] = ['A', 'B', 'C', 'D']
+    df_decisiones['operacion'] = operacion
+    df_decisiones['sl'] = sl
+    df_decisiones['tp'] = tp
+    df_decisiones['volumen'] = volumen
+    return df_decisiones
+
+
+def f_minimizar(df_backtest):
+    maximo = max(df_backtest.capital_acm)
+    minimo = min(df_backtest.capital_acm)
+    posicion_max = df_backtest.index.get_indexer_for(df_backtest[df_backtest.capital_acm == maximo].index)[0]
+    posicion_min = df_backtest.index.get_indexer_for(df_backtest[df_backtest.capital_acm == minimo].index)[0]
+
+    # primero es el Drawup
+    if posicion_max < posicion_min:
+        # Drowdown
+        drawdown_valor_inicio = df_backtest['capital_acm'][posicion_max]
+        drawdown_valor_fin = df_backtest['capital_acm'][posicion_min]
+    else:
+        drawdown_valor_inicio = 100000
+        drawdown_valor_fin = df_backtest['capital_acm'][posicion_min]
+
+    drawdown = drawdown_valor_fin - drawdown_valor_inicio
+
+    return drawdown
+
+
+def f_optimizacion(metric, lb, ub, operacion):
+    max_bound = ub
+    min_bound = lb
+    bounds = (min_bound, max_bound)
+
+    def drawdown_neg(x):
+        sl = x[:4]
+        tp = x[4:8]
+        volumen = x[8:12]
+        escenarios = f_decisiones(operacion, sl, tp, volumen)
+        capital_inicial= 100000
+        backtesting = back_test(metric, escenarios, capital_inicial)
+        drawdown = f_minimizar(backtesting)
+
+        return drawdown*-1
+
+    options = {'c1': 5, 'c2': 3, 'w': 0.9}
+    # Call instance of PSO with bounds argument
+    optimizer = ps.single.GlobalBestPSO(n_particles=12, dimensions=len(ub), options=options, bounds=bounds)
+    # Perform optimization
+    cost, pos = optimizer.optimize(drawdown_neg, iters=100)
+
+    operacion = ['compra', 'compra', 'venta', 'venta']
+    sl = pos[:4]
+    tp = pos[4:8]
+    volumen = pos[8:12]
+
+    df_decisiones_optimo = f_decisiones(operacion, sl, tp, volumen)
+
+    return cost, df_decisiones_optimo, optimizer
