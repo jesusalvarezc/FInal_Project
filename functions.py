@@ -90,7 +90,7 @@ def atipicos(data):
 
 # Computational
 
-def clasificacion(data):
+def clasificacion(data: pd.DataFrame):
     res = []
     for i in range(len(data)):
         actual = data.iloc[i,1]
@@ -136,10 +136,10 @@ def metrics(data: dict, indx: pd.DataFrame):
     return res_metric
 
 
-def desciciones(metrics: pd.DataFrame):
+def deciciones(metrics: pd.DataFrame):
     train_date = dt.datetime(2019, 2, 1)
     train_metrics = metrics[metrics["DateTime"] < train_date]
-    train_metrics = train_metrics.reset_index(range(len(train_metrics)))
+    train_metrics = train_metrics.reset_index()
     operation = []
     tp = []
     sl = []
@@ -149,40 +149,41 @@ def desciciones(metrics: pd.DataFrame):
         data = train_metrics[train_metrics.Escenario == i]
         dir_sum = data["direccion"].sum()
         operation.append("compra" if dir_sum > 0 else "venta")
-        als = int(data["pip_alcistas"].mean()/10)*10
-        baj = int(data["pip_bajistas"].mean()/10)*10
-        tp.append(als if operation[i] == "compra" else baj)
+        als = data["pip_alcistas"].mean()/10
+        baj = data["pip_bajistas"].mean()/10
+        tp.append(als if operation[-1] == "compra" else baj)
         vol = data["volatilidad"].mean()
         volumen.append(10000/(vol/100))
-    train = pd.DataFrame(data= {"operacion": operation,
-                                "sl": sl,
+    train = pd.DataFrame(data= {"Escenario": escenarios,
+                                "operacion": operation,
+                                "sl": [i/2 for i in tp],
                                 "tp": tp,
                                 "volumen": volumen})
 
     return train
 
 
-def back_test(metrics: pd.DataFrame, desciciones: pd.DataFrame, capital: int):
+def back_test(metrics: pd.DataFrame, deciciones: pd.DataFrame, capital: int):
     test_date = dt.datetime(2019, 1, 31)
     test_metrics = metrics[metrics["DateTime"] > test_date]
-    test_metrics = test_metrics.reset_index(range(len(test_metrics)))
-    test = test_metrics.merge(desciciones, left_on="Escenarios", right_on="Escenarios")
+    test_metrics = test_metrics.reset_index()
+    test = test_metrics.merge(deciciones, left_on="Escenario", right_on="Escenario")
     test["resultado"] = list(range(len(test)))
     test["pips"] = list(range(len(test)))
     test["capital"] = list(range(len(test)))
     test["capital_acm"] = list(range(len(test)))
     for i in range(len(test)):
-        if test.loc[str(i),"operacion"] == "compra":
-            test.loc[str(i),"pips"] = test.loc[str(i),"pip_alcistas"] if test.loc[str(i),"pip_alcistas"] >= test.loc[str(i),"tp"] else -1 * test.loc[str(i),"pip_bajistas"]
-            test.loc[str(i),"resultado"] = "ganada" if test.loc[str(i),"pip_alcistas"] == test.loc[str(i),"tp"] else "perdida"
-            test.loc[str(i), "capital"] = (test.loc[str(i), "volumen"] * test.loc[str(i), "pips"])/1000
-            capital += test.loc[str(i), "capital"]
-            test.iloc[str(i), "capital_acm"] = capital
+        if test.loc[i,"operacion"] == "compra":
+            test.loc[i,"pips"] = test.loc[i,"pip_alcistas"] if test.loc[i,"pip_alcistas"] >= test.loc[i,"tp"] else -1 * test.loc[i,"pip_bajistas"]
+            test.loc[i,"resultado"] = "ganada" if test.loc[i,"pip_alcistas"] == test.loc[i,"tp"] else "perdida"
+            test.loc[i, "capital"] = (test.loc[i, "volumen"] * test.loc[i, "pips"])/1000
+            capital += test.loc[i, "capital"]
+            test.loc[i, "capital_acm"] = capital
         else:
-            test.loc[str(i), "pips"] = test.loc[str(i), "pip_bajistas"] if test.loc[str(i), "pip_bajistas"] >= test.loc[str(i), "tp"] else -1 * test.loc[str(i), "pip_alcistas"]
-            test.loc[str(i), "resultado"] = "ganada" if test.loc[str(i), "pip_bajistas"] == test.loc[str(i), "tp"] else "perdida"
-            test.loc[str(i), "capital"] = (test.loc[str(i), "volumen"] * test.loc[str(i), "pips"]) / 1000
-            capital += test.loc[str(i), "capital"]
-            test.iloc[str(i), "capital_acm"] = capital
+            test.loc[i, "pips"] = test.loc[i, "pip_bajistas"] if test.loc[i, "pip_bajistas"] >= test.loc[i, "tp"] else -1 * test.loc[i, "pip_alcistas"]
+            test.loc[i, "resultado"] = "ganada" if test.loc[i, "pip_bajistas"] == test.loc[i, "tp"] else "perdida"
+            test.loc[i, "capital"] = (test.loc[i, "volumen"] * test.loc[i, "pips"]) / 1000
+            capital += test.loc[i, "capital"]
+            test.loc[i, "capital_acm"] = capital
 
     return test
