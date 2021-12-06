@@ -30,12 +30,14 @@ def graf_ind(indicator):
     return plt.show()
 
 
-def graf_val(indicator, num, fecha):
-    fig1, ax1 = plt.subplots()
-    ax1.scatter(x=[fecha, fecha, fecha], y=[indicator.iloc[num]['Actual'], indicator.iloc[num]['Consensus'],
-                                            indicator.iloc[num]['Previous']])
-    plt.xlabel("Valores")
-    plt.title("Trade balance USA indicator")
+def graf_val(data1, fecha):
+    close = data1['close']
+    ax1 = close.plot(color='blue')
+    ax1.axvline(fecha, color='red', linestyle='--')
+    plt.xticks(rotation=45)
+    plt.ylabel("Precios")
+    plt.xlabel("Fechas")
+    plt.title("USD-MXN")
     return plt.show()
 
 
