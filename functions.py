@@ -18,6 +18,7 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 import seaborn as sns
 import matplotlib.pyplot as plt
+import datetime as dt
 import plotly.express as px
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.graphics.tsaplots import plot_pacf
@@ -106,23 +107,45 @@ def clasificacion(data):
     data["Escenario"] = res
     return data
 
+
 def metrics(data: dict, indx: pd.DataFrame):
     res_metric = indx[["DateTime", "Escenario"]]
     directions = []
     pips_alctas = []
     pips_bajtas = []
+    volatilidad = []
     for i in list(data.keys()):
-        o0 = data[i].loc[0]["open"]
-        direction = data[i].iloc[-1, :]["close"] - data[i].loc[0]["open"]
+        df = data[i]
+        o0 = df.loc[0]["open"]
+        direction = df.iloc[-1, :]["close"] - df.loc[0]["open"]
         directions.append(direction)
-        alctas = [high - o0 for high in data[i].loc[data[i].index >= 0, "high"] if high - o0 > 0]
+        alctas = [high - o0 for high in df.loc[df.index >= 0, "high"] if high - o0 > 0]
         alctas_sum = int(np.sum(alctas) * 1000)
         pips_alctas.append(alctas_sum)
-        bajistas = [o0 - low for low in data[i].loc[data[i].index >= 0, "low"] if o0 - low > 0]
+        bajistas = [o0 - low for low in df.loc[df.index >= 0, "low"] if o0 - low > 0]
         bajistas_sum = int(np.sum(bajistas) * 1000)
         pips_bajtas.append(bajistas_sum)
+        vol = [df.high.iloc[v] - df.low.iloc[v] for v in range(len(df))]
+        vola = int(np.sum(vol) * 1000)
+        volatilidad.append(vola)
     directions_append = [1 if i > 0 else -1 for i in directions]
     res_metric["direccion"] = directions_append
     res_metric["pip_alcistas"] = pips_alctas
     res_metric["pip_bajistas"] = pips_bajtas
+    res_metric["volatilidad"] = volatilidad
     return res_metric
+
+
+def desciciones(metrics: pd.DataFrame):
+    train_date = dt.datetime(2019, 2, 1)
+    test_date = dt.datetime(2019, 1, 31)
+    #pd.to_datetime(metrics["Escenario"], format="%Y/%m/%d %H:%M:%S")
+    train_metrics = metrics[metrics["DateTime"] < train_date]
+    train = pd.DataFrame(train_metrics["Escenario"])
+    #train["operacion"] = ["compra" if i == 1 else "venta" for i in train_metrics["direccion"]]
+    #train["tp"] = [int(train_metrics.iloc[i, -2]/2)*10 if train.iloc[i, 1] == "compra" else int(train_metrics.iloc[i, -3]/20)*10 for i in range(len(train))]
+    #train["sl"] = [i/2 for i in train["tp"]]
+    #train["volumen"] = [10000/(i/10) for i in metrics["volatilidad"]]
+
+    return train
+
