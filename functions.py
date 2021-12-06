@@ -170,13 +170,19 @@ def back_test(metrics: pd.DataFrame, desciciones: pd.DataFrame, capital: int):
     test["resultado"] = list(range(len(test)))
     test["pips"] = list(range(len(test)))
     test["capital"] = list(range(len(test)))
+    test["capital_acm"] = list(range(len(test)))
     for i in range(len(test)):
         if test.loc[str(i),"operacion"] == "compra":
             test.loc[str(i),"pips"] = test.loc[str(i),"pip_alcistas"] if test.loc[str(i),"pip_alcistas"] >= test.loc[str(i),"tp"] else -1 * test.loc[str(i),"pip_bajistas"]
             test.loc[str(i),"resultado"] = "ganada" if test.loc[str(i),"pip_alcistas"] == test.loc[str(i),"tp"] else "perdida"
             test.loc[str(i), "capital"] = (test.loc[str(i), "volumen"] * test.loc[str(i), "pips"])/1000
-            capital = capital + test.loc[str(i), "capital"] if test.loc[str(i),"resultado"] == "ganada" else capital - test.loc[str(i), "capital"]
-
-
+            capital += test.loc[str(i), "capital"]
+            test.iloc[str(i), "capital_acm"] = capital
+        else:
+            test.loc[str(i), "pips"] = test.loc[str(i), "pip_bajistas"] if test.loc[str(i), "pip_bajistas"] >= test.loc[str(i), "tp"] else -1 * test.loc[str(i), "pip_alcistas"]
+            test.loc[str(i), "resultado"] = "ganada" if test.loc[str(i), "pip_bajistas"] == test.loc[str(i), "tp"] else "perdida"
+            test.loc[str(i), "capital"] = (test.loc[str(i), "volumen"] * test.loc[str(i), "pips"]) / 1000
+            capital += test.loc[str(i), "capital"]
+            test.iloc[str(i), "capital_acm"] = capital
 
     return test
